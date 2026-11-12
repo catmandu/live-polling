@@ -11,14 +11,14 @@ export function usePollSocket(role, { token, onUnauthorized } = {}) {
     votersCount: 0,
   });
   const [me, setMe] = useState({ hasInvite: false, joined: false, needsName: false, id: null, name: null, vote: null });
-  const [invites, setInvites] = useState([]);
+  const [registry, setRegistry] = useState({ invites: [], nextId: null, limit: 0, publicUrl: '' });
   const [connected, setConnected] = useState(socket.connected);
 
   useEffect(() => {
     const handlers = {
       state: setState,
       me: setMe,
-      invites: setInvites,
+      registry: setRegistry,
       connect: () => setConnected(true),
       disconnect: () => setConnected(false),
       connect_error: (err) => {
@@ -33,5 +33,5 @@ export function usePollSocket(role, { token, onUnauthorized } = {}) {
     };
   }, [socket]);
 
-  return { socket, state, me, invites, connected };
+  return { socket, state, me, registry, connected };
 }

@@ -12,7 +12,7 @@ export default function Results({ options, totalVotes, myVote, onSelect, disable
             <span className="bar" style={{ width: `${pct}%` }} />
             {interactive && <span className="radio">{selected ? '◉' : '○'}</span>}
             <span className="text">
-              {o.name}
+              {o.label ?? o.name}
               {o.isMe && <span className="you"> (you)</span>}
               {highlightLeader && o.votes > 0 && o.votes === leader && ' 🏆'}
               {o.meta && <span className="meta">{o.meta}</span>}

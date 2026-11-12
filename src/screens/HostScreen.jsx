@@ -4,15 +4,14 @@ import Results from '../components/Results.jsx';
 import InvitesPanel from '../components/InvitesPanel.jsx';
 
 export default function HostScreen({ token, onLogout, onUnauthorized }) {
-  const { socket, state, invites, connected } = usePollSocket('host', { token, onUnauthorized });
+  const { socket, state, registry, connected } = usePollSocket('host', { token, onUnauthorized });
+  const { invites, limit } = registry;
   const [questionDraft, setQuestionDraft] = useState('');
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     if (!editing) setQuestionDraft(state.question);
   }, [state.question, editing]);
-
-  const joinUrl = `${window.location.origin}${window.location.pathname}`;
 
   const saveQuestion = (e) => {
     e.preventDefault();
@@ -27,7 +26,7 @@ export default function HostScreen({ token, onLogout, onUnauthorized }) {
       <header className="header">
         <div className="host-topbar">
           <span className={`status ${connected ? 'on' : 'off'}`}>
-            {connected ? '● Host · Live' : '○ Reconnecting…'}
+            {connected ? '● Anfitrión · Online' : '○ Reconectando…'}
           </span>
           <button className="link" onClick={onLogout}>
             Log out
@@ -44,8 +43,7 @@ export default function HostScreen({ token, onLogout, onUnauthorized }) {
           />
         </form>
         <p className="subtitle">
-          Participants need an invite link or code from the list below. Code entry page:{' '}
-          <a href={joinUrl} target="_blank" rel="noreferrer">{joinUrl}</a>
+          Participants register by scanning the QR code below — one code per person.
         </p>
       </header>
 
@@ -64,15 +62,18 @@ export default function HostScreen({ token, onLogout, onUnauthorized }) {
           Reset votes
         </button>
         <button
-          onClick={confirmThen('Revoke all invites and remove all votes?', () => socket.emit('resetAll'))}
-          disabled={!connected || invites.length === 0}
+          onClick={confirmThen(
+            `Start a new run? All registrations and votes are removed and ${limit} new spots are created.`,
+            () => socket.emit('resetAll')
+          )}
+          disabled={!connected}
         >
-          Clear everything
+          New run
         </button>
       </div>
 
       <div className="stats">
-        <div><strong>{invites.length}</strong><span>invites</span></div>
+        <div><strong>{invites.filter((i) => i.status !== 'open').length}/{limit}</strong><span>registered</span></div>
         <div><strong>{state.options.length}</strong><span>joined</span></div>
         <div><strong>{state.votersCount}</strong><span>voted</span></div>
         <div><strong>{state.votingOpen ? 'Open' : 'Closed'}</strong><span>voting</span></div>
@@ -91,7 +92,7 @@ export default function HostScreen({ token, onLogout, onUnauthorized }) {
                 <button
                   className="remove"
                   title={`Remove ${o.name}`}
-                  onClick={confirmThen(`Remove ${o.name} and revoke their invite?`, () =>
+                  onClick={confirmThen(`Remove ${o.name} and free their spot?`, () =>
                     socket.emit('revokeInvite', o.id)
                   )}
                 >
@@ -103,7 +104,7 @@ export default function HostScreen({ token, onLogout, onUnauthorized }) {
         />
       )}
 
-      <InvitesPanel socket={socket} invites={invites} connected={connected} />
+      <InvitesPanel socket={socket} registry={registry} connected={connected} />
     </main>
   );
 }
